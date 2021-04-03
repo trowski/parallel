@@ -19,6 +19,7 @@
 #define HAVE_PARALLEL_SCHEDULER
 
 #include "parallel.h"
+#include <ext/fiber/fiber.h>
 
 TSRM_TLS php_parallel_runtime_t* php_parallel_scheduler_context = NULL;
 TSRM_TLS php_parallel_future_t* php_parallel_scheduler_future = NULL;
@@ -295,7 +296,9 @@ static void php_parallel_scheduler_run(php_parallel_runtime_t *runtime, zend_exe
 
         pefree(frame->func, 1);
 
-        zend_vm_stack_free_call_frame(frame);
+		if (zend_get_current_fiber() == NULL) {
+			zend_vm_stack_free_call_frame(frame);
+		}
     } zend_end_try ();
 
     if (future) {
